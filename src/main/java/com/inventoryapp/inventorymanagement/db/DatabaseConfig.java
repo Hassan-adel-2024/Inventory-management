@@ -16,10 +16,10 @@ public class DatabaseConfig {
         try {
             if (connection == null || connection.isClosed()) {
                 connection = DriverManager.getConnection(URL, USER, PASSWORD);
-                System.out.println("✅ Connected to the database successfully.");
+                System.out.println("Connected to the database successfully.");
             }
         } catch (SQLException e) {
-            System.err.println("❌ Failed to connect to the database:");
+            System.err.println("Failed to connect to the database:");
             e.printStackTrace();
         }
         return connection;
@@ -29,7 +29,7 @@ public class DatabaseConfig {
         try {
             if (connection != null && !connection.isClosed()) {
                 connection.close();
-                System.out.println("🔌 Connection closed.");
+                System.out.println("Connection closed.");
             }
         } catch (SQLException e) {
             e.printStackTrace();

@@ -80,7 +80,7 @@ public class ConsumptionService implements IConsumptionService {
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to consume product stock", e);
             response.setSuccess(false);
-            response.setMessage("❌ Consumption failed: " + e.getMessage());
+            response.setMessage("Consumption failed: " + e.getMessage());
         }
 
         return response;

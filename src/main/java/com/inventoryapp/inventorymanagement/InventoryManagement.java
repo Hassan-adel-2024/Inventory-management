@@ -4,6 +4,7 @@ import com.inventoryapp.inventorymanagement.db.DatabaseConfig;
 import com.inventoryapp.inventorymanagement.ui.MainView;
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -21,8 +22,7 @@ public class InventoryManagement extends Application {
 //        stage.setScene(scene);
 //        root.getChildren().add(title);
 //        stage.setTitle("Inventory Management");
-//        Image icon = new Image("D:\\Programming\\demo\\Inventory-management\\src\\icon.jpg");
-//        stage.getIcons().add(icon);
+
 //
 //        stage.show();
         MainView mainView = new MainView();
@@ -30,6 +30,8 @@ public class InventoryManagement extends Application {
 
         Scene scene = new Scene(root, 800, 600);
         stage.setScene(scene);
+        Image icon = new Image("D:\\Programming\\demo\\Inventory-management\\src\\icon.jpg");
+        stage.getIcons().add(icon);
         stage.setTitle("Product Inventory Management");
         stage.show();
     }
@@ -37,7 +39,7 @@ public class InventoryManagement extends Application {
     public static void main(String[] args) {
         Connection conn = DatabaseConfig.getConnection();
         if (conn != null) {
-            System.out.println("🎉 Connection test successful!");
+            System.out.println("Connection test successful!");
         }
         DatabaseConfig.closeConnection();
         launch(args);
