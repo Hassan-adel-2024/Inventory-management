@@ -9,7 +9,7 @@ import java.util.List;
 public class PurchaseOrderItemDao extends BaseDao<PurchaseOrderItem>{
     @Override
     public void save(PurchaseOrderItem item) throws SQLException {
-        String sql = "INSERT INTO PurchaseOrderItem (OrderID, ProductID, UnitPrice, Quantity) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO OrderItems (OrderID, ProductID, UnitPrice, Quantity) VALUES (?, ?, ?, ?)";
 
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -33,7 +33,7 @@ public class PurchaseOrderItemDao extends BaseDao<PurchaseOrderItem>{
 
     @Override
     public PurchaseOrderItem findById(int id) throws SQLException {
-        String sql = "SELECT * FROM PurchaseOrderItem WHERE OrderItemID = ?";
+        String sql = "SELECT * FROM OrderItems WHERE OrderItemID = ?";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -56,7 +56,7 @@ public class PurchaseOrderItemDao extends BaseDao<PurchaseOrderItem>{
 
     @Override
     public List<PurchaseOrderItem> findAll() throws SQLException {
-        String sql = "SELECT * FROM PurchaseOrderItem";
+        String sql = "SELECT * FROM OrderItems";
         List<PurchaseOrderItem> items = new ArrayList<>();
 
         try (Connection conn = getConnection();
@@ -79,7 +79,7 @@ public class PurchaseOrderItemDao extends BaseDao<PurchaseOrderItem>{
 
     @Override
     public void update(PurchaseOrderItem item) throws SQLException {
-        String sql = "UPDATE PurchaseOrderItem SET OrderID = ?, ProductID = ?, UnitPrice = ?, Quantity = ? WHERE OrderItemID = ?";
+        String sql = "UPDATE OrderItems SET OrderID = ?, ProductID = ?, UnitPrice = ?, Quantity = ? WHERE OrderItemID = ?";
 
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -97,7 +97,7 @@ public class PurchaseOrderItemDao extends BaseDao<PurchaseOrderItem>{
     @Override
     public void delete(int id) throws SQLException {
 
-        String sql = "DELETE FROM PurchaseOrderItem WHERE OrderItemID = ?";
+        String sql = "DELETE FROM OrderItems WHERE OrderItemID = ?";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 

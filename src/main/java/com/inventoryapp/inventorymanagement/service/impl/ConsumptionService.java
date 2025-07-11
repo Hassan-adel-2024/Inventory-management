@@ -5,6 +5,7 @@ import com.inventoryapp.inventorymanagement.model.Product;
 import com.inventoryapp.inventorymanagement.service.IConsumptionService;
 import javafx.util.Pair;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -17,9 +18,6 @@ public class ConsumptionService implements IConsumptionService {
         this.productService = productService;
     }
 
-    /*
-     @Param productQuantities A list of pairs where each pair contains a product ID and the quantity to consume.
-     */
     @Override
     public ConsumptionResponseDto consumeProduct(List<Pair<Integer, Integer>> productQuantities) {
         ConsumptionResponseDto response = new ConsumptionResponseDto();
@@ -36,11 +34,15 @@ public class ConsumptionService implements IConsumptionService {
                 }
 
                 if (product.getCurrentStock() < quantityToConsume) {
-                    throw new IllegalStateException("Insufficient stock for product ID: " + productId);
+                    throw new IllegalStateException("Insufficient stock for product: " + product.getName() +
+                            " (Available: " + product.getCurrentStock() + ", Requested: " + quantityToConsume + ")");
                 }
             }
 
             // Step 2: Perform stock updates
+            List<String> consumedProducts = new ArrayList<>();
+            List<String> lowStockWarnings = new ArrayList<>();
+
             for (Pair<Integer, Integer> pair : productQuantities) {
                 int productId = pair.getKey();
                 int quantityToConsume = pair.getValue();
@@ -48,17 +50,39 @@ public class ConsumptionService implements IConsumptionService {
                 Product product = productService.getProductById(productId);
                 int newStock = product.getCurrentStock() - quantityToConsume;
                 productService.updateProductStock(productId, newStock);
+
+                consumedProducts.add(String.format("%s (-%d)", product.getName(), quantityToConsume));
+
+                // Check if stock is now below threshold
+                if (newStock < product.getReorderThreshold()) {
+                    lowStockWarnings.add(String.format("%s is now below reorder threshold (%d remaining)",
+                            product.getName(), newStock));
+                }
+            }
+
+            // Step 3: Build response message
+            StringBuilder messageBuilder = new StringBuilder();
+            messageBuilder.append("✓ Products consumed successfully:\n");
+            for (String consumed : consumedProducts) {
+                messageBuilder.append("• ").append(consumed).append("\n");
+            }
+
+            if (!lowStockWarnings.isEmpty()) {
+                messageBuilder.append("\n⚠ Low stock warnings:\n");
+                for (String warning : lowStockWarnings) {
+                    messageBuilder.append("• ").append(warning).append("\n");
+                }
             }
 
             response.setSuccess(true);
-            response.setMessage("All product stocks consumed successfully.");
+            response.setMessage(messageBuilder.toString().trim());
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to consume product stock", e);
             response.setSuccess(false);
-            response.setMessage("Consumption failed: " + e.getMessage());
+            response.setMessage("❌ Consumption failed: " + e.getMessage());
         }
 
         return response;
     }
 }
-

@@ -6,12 +6,14 @@ public class PurchaseOrder {
     private int orderID;
     private int supplierID;
     private Date createdAt;
+    private boolean isDelivered;
     public PurchaseOrder() {}
 
-    public PurchaseOrder(int orderID, int supplierID, Date createdAt) {
+    public PurchaseOrder(int orderID, int supplierID, Date createdAt, boolean isDelivered) {
         this.orderID = orderID;
         this.supplierID = supplierID;
         this.createdAt = createdAt;
+        this.isDelivered = isDelivered;
     }
 
     public int getOrderID() {
@@ -36,5 +38,13 @@ public class PurchaseOrder {
 
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public boolean isDelivered() {
+        return isDelivered;
+    }
+
+    public void setDelivered(boolean delivered) {
+        isDelivered = delivered;
     }
 }

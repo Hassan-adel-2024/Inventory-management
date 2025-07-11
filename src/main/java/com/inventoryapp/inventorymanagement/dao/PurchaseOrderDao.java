@@ -10,7 +10,7 @@ public class PurchaseOrderDao extends BaseDao<PurchaseOrder>{
 
     @Override
     public void save(PurchaseOrder purchaseOrder) throws SQLException {
-        String sql = "INSERT INTO PurchaseOrder (SupplierID, CreatedAt) VALUES (?, ?)";
+        String sql = "INSERT INTO PurchaseOrders (SupplierID, CreatedAt) VALUES (?, ?)";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -28,7 +28,7 @@ public class PurchaseOrderDao extends BaseDao<PurchaseOrder>{
 
     @Override
     public PurchaseOrder findById(int id) throws SQLException {
-        String sql = "SELECT * FROM PurchaseOrder WHERE OrderID = ?";
+        String sql = "SELECT * FROM PurchaseOrders WHERE OrderID = ?";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -38,7 +38,8 @@ public class PurchaseOrderDao extends BaseDao<PurchaseOrder>{
                     return new PurchaseOrder(
                             rs.getInt("OrderID"),
                             rs.getInt("SupplierID"),
-                            rs.getDate("CreatedAt")
+                            rs.getDate("CreatedAt"),
+                            rs.getBoolean("IsDelivered")
                     );
                 }
             }
@@ -48,7 +49,7 @@ public class PurchaseOrderDao extends BaseDao<PurchaseOrder>{
 
     @Override
     public List<PurchaseOrder> findAll() throws SQLException {
-        String sql = "SELECT * FROM PurchaseOrder";
+        String sql = "SELECT * FROM PurchaseOrders";
         List<PurchaseOrder> orders = new ArrayList<>();
 
         try (Connection conn = getConnection();
@@ -59,7 +60,8 @@ public class PurchaseOrderDao extends BaseDao<PurchaseOrder>{
                 orders.add(new PurchaseOrder(
                         rs.getInt("OrderID"),
                         rs.getInt("SupplierID"),
-                        rs.getDate("CreatedAt")
+                        rs.getDate("CreatedAt"),
+                        rs.getBoolean("IsDelivered")
                 ));
             }
         }
@@ -68,7 +70,7 @@ public class PurchaseOrderDao extends BaseDao<PurchaseOrder>{
 
     @Override
     public void update(PurchaseOrder purchaseOrder) throws SQLException {
-        String sql = "UPDATE PurchaseOrder SET SupplierID = ?, CreatedAt = ? WHERE OrderID = ?";
+        String sql = "UPDATE PurchaseOrders SET SupplierID = ?, CreatedAt = ? WHERE OrderID = ?";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -82,7 +84,7 @@ public class PurchaseOrderDao extends BaseDao<PurchaseOrder>{
 
     @Override
     public void delete(int id) throws SQLException {
-        String sql = "DELETE FROM PurchaseOrder WHERE OrderID = ?";
+        String sql = "DELETE FROM PurchaseOrders WHERE OrderID = ?";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
