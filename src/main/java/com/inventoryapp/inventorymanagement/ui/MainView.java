@@ -1,26 +1,12 @@
 package com.inventoryapp.inventorymanagement.ui;
 
-import com.inventoryapp.inventorymanagement.dto.ConsumptionResponseDto;
-import com.inventoryapp.inventorymanagement.model.Product;
 import com.inventoryapp.inventorymanagement.service.impl.ConsumptionService;
 import com.inventoryapp.inventorymanagement.service.impl.ProductService;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.util.Callback;
-import javafx.util.Pair;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import com.inventoryapp.inventorymanagement.ui.RestockOrderComponent;
 
 public class MainView {
     private final ProductService productService = new ProductService();
@@ -31,6 +17,8 @@ public class MainView {
     private ProductConsumptionComponent consumptionComponent;
     private PurchaseOrderReportComponent purchaseOrderReportComponent;
     private ProductsBelowThresholdNotReorderedComponent productsBelowThresholdNotReorderedComponent;
+    private MarkOrderDeliveredComponent markOrderDeliveredComponent;
+    private MarkOrderDeletedComponent markOrderDeletedComponent;
 
     // Track which components are currently shown to prevent duplicates
     private boolean lowStockShown = false;
@@ -44,23 +32,30 @@ public class MainView {
         root = new VBox(10);
         root.setPadding(new Insets(10));
 
-        Button showLowStockBtn = new Button("Show Low Stock Products");
+        // Reordered buttons for logical flow
         Button consumeBtn = new Button("Consume Products");
-        Button showPurchaseOrderReportBtn = new Button("Purchase Order Report");
+        Button showLowStockBtn = new Button("Show Low Stock Products");
         Button showProductsBelowThresholdNotReorderedBtn = new Button("Products Below Threshold Not Reordered");
+        Button showPurchaseOrderReportBtn = new Button("Purchase Order Report");
+        Button markOrderDeliveredBtn = new Button("Mark Order as Delivered");
+        Button markOrderDeletedBtn = new Button("Mark Order as Deleted");
         Button hideAllBtn = new Button("Hide All Tables");
 
-        showLowStockBtn.setOnAction(e -> toggleLowStockProducts());
         consumeBtn.setOnAction(e -> toggleConsumptionUI());
-        showPurchaseOrderReportBtn.setOnAction(e -> togglePurchaseOrderReport());
+        showLowStockBtn.setOnAction(e -> toggleLowStockProducts());
         showProductsBelowThresholdNotReorderedBtn.setOnAction(e -> toggleProductsBelowThresholdNotReordered());
+        showPurchaseOrderReportBtn.setOnAction(e -> togglePurchaseOrderReport());
+        markOrderDeliveredBtn.setOnAction(e -> toggleMarkOrderDelivered());
+        markOrderDeletedBtn.setOnAction(e -> toggleMarkOrderDeleted());
         hideAllBtn.setOnAction(e -> hideAllComponents());
 
         root.getChildren().addAll(
-            showLowStockBtn,
             consumeBtn,
-            showPurchaseOrderReportBtn,
+            showLowStockBtn,
             showProductsBelowThresholdNotReorderedBtn,
+            showPurchaseOrderReportBtn,
+            markOrderDeliveredBtn,
+            markOrderDeletedBtn,
             hideAllBtn,
             resultLabel
         );
@@ -182,11 +177,43 @@ public class MainView {
         }
     }
 
+    private void toggleMarkOrderDelivered() {
+        if (markOrderDeliveredComponent == null) {
+            markOrderDeliveredComponent = new MarkOrderDeliveredComponent();
+            root.getChildren().add(markOrderDeliveredComponent.getView());
+        }
+        Node view = markOrderDeliveredComponent.getView();
+        if (view.isVisible()) {
+            markOrderDeliveredComponent.hide();
+        } else {
+            markOrderDeliveredComponent.show();
+        }
+    }
+
+    private void toggleMarkOrderDeleted() {
+        if (markOrderDeletedComponent == null) {
+            markOrderDeletedComponent = new MarkOrderDeletedComponent();
+            root.getChildren().add(markOrderDeletedComponent.getView());
+        }
+        Node view = markOrderDeletedComponent.getView();
+        if (view.isVisible()) {
+            markOrderDeletedComponent.hide();
+        } else {
+            markOrderDeletedComponent.show();
+        }
+    }
+
     private void hideAllComponents() {
         hideLowStockComponent();
         hideConsumptionComponent();
         hidePurchaseOrderReportComponent();
         hideProductsBelowThresholdNotReorderedComponent();
+        if (markOrderDeliveredComponent != null) {
+            markOrderDeliveredComponent.hide();
+        }
+        if (markOrderDeletedComponent != null) {
+            markOrderDeletedComponent.hide();
+        }
         clearResultLabel();
     }
 

@@ -7,6 +7,8 @@ public class PurchaseOrder {
     private int supplierID;
     private Date createdAt;
     private boolean isDelivered;
+    private boolean isDeleted;
+
     public PurchaseOrder() {}
 
     public PurchaseOrder(int orderID, int supplierID, Date createdAt, boolean isDelivered) {
@@ -14,6 +16,15 @@ public class PurchaseOrder {
         this.supplierID = supplierID;
         this.createdAt = createdAt;
         this.isDelivered = isDelivered;
+        this.isDeleted = false;
+    }
+
+    public PurchaseOrder(int orderID, int supplierID, Date createdAt, boolean isDelivered, boolean isDeleted) {
+        this.orderID = orderID;
+        this.supplierID = supplierID;
+        this.createdAt = createdAt;
+        this.isDelivered = isDelivered;
+        this.isDeleted = isDeleted;
     }
 
     public int getOrderID() {
@@ -46,5 +57,13 @@ public class PurchaseOrder {
 
     public void setDelivered(boolean delivered) {
         isDelivered = delivered;
+    }
+
+    public boolean isDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        isDeleted = deleted;
     }
 }

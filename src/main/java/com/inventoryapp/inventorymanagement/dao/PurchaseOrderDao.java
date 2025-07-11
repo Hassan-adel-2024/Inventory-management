@@ -10,12 +10,14 @@ public class PurchaseOrderDao extends BaseDao<PurchaseOrder>{
 
     @Override
     public void save(PurchaseOrder purchaseOrder) throws SQLException {
-        String sql = "INSERT INTO PurchaseOrders (SupplierID, CreatedAt) VALUES (?, ?)";
+        String sql = "INSERT INTO PurchaseOrders (SupplierID, CreatedAt, IsDelivered, IsDeleted) VALUES (?, ?, ?, ?)";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             stmt.setInt(1, purchaseOrder.getSupplierID());
             stmt.setDate(2, new java.sql.Date(purchaseOrder.getCreatedAt().getTime()));
+            stmt.setBoolean(3, purchaseOrder.isDelivered());
+            stmt.setBoolean(4, purchaseOrder.isDeleted());
             stmt.executeUpdate();
 
             try (ResultSet rs = stmt.getGeneratedKeys()) {
@@ -39,7 +41,8 @@ public class PurchaseOrderDao extends BaseDao<PurchaseOrder>{
                             rs.getInt("OrderID"),
                             rs.getInt("SupplierID"),
                             rs.getDate("CreatedAt"),
-                            rs.getBoolean("IsDelivered")
+                            rs.getBoolean("IsDelivered"),
+                            rs.getBoolean("IsDeleted")
                     );
                 }
             }
@@ -61,7 +64,8 @@ public class PurchaseOrderDao extends BaseDao<PurchaseOrder>{
                         rs.getInt("OrderID"),
                         rs.getInt("SupplierID"),
                         rs.getDate("CreatedAt"),
-                        rs.getBoolean("IsDelivered")
+                        rs.getBoolean("IsDelivered"),
+                        rs.getBoolean("IsDeleted")
                 ));
             }
         }
@@ -70,13 +74,15 @@ public class PurchaseOrderDao extends BaseDao<PurchaseOrder>{
 
     @Override
     public void update(PurchaseOrder purchaseOrder) throws SQLException {
-        String sql = "UPDATE PurchaseOrders SET SupplierID = ?, CreatedAt = ? WHERE OrderID = ?";
+        String sql = "UPDATE PurchaseOrders SET SupplierID = ?, CreatedAt = ?, IsDelivered = ?, IsDeleted = ? WHERE OrderID = ?";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, purchaseOrder.getSupplierID());
             stmt.setDate(2, new java.sql.Date(purchaseOrder.getCreatedAt().getTime()));
-            stmt.setInt(3, purchaseOrder.getOrderID());
+            stmt.setBoolean(3, purchaseOrder.isDelivered());
+            stmt.setBoolean(4, purchaseOrder.isDeleted());
+            stmt.setInt(5, purchaseOrder.getOrderID());
 
             stmt.executeUpdate();
         }

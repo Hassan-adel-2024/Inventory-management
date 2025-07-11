@@ -14,17 +14,7 @@ import java.sql.Connection;
 public class InventoryManagement extends Application {
     @Override
     public void start(Stage stage) throws IOException {
-//        Group root = new Group();
-//        Scene scene = new Scene(root,600, 400, Color.LIGHTBLUE);
-//        Text title = new Text("Please hire me");
-//        title.setX(50);
-//        title.setY(50);
-//        stage.setScene(scene);
-//        root.getChildren().add(title);
-//        stage.setTitle("Inventory Management");
 
-//
-//        stage.show();
         MainView mainView = new MainView();
         VBox root = (VBox) mainView.buildMainUI();
 
@@ -37,11 +27,7 @@ public class InventoryManagement extends Application {
     }
 
     public static void main(String[] args) {
-//        Connection conn = DatabaseConfig.getConnection();
-//        if (conn != null) {
-//            System.out.println("Connection test successful!");
-//        }
-//        DatabaseConfig.closeConnection();
+
         launch(args);
     }
 }

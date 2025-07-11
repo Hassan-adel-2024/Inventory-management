@@ -35,7 +35,7 @@ public class PurchaseOrderService implements IPurchaseOrderService {
                 for (PurchaseOrderItem item : allItems) {
                     if (item.getProductID() == product.getProductId()) {
                         PurchaseOrder order = purchaseOrderDao.findById(item.getOrderID());
-                        if (order != null && !order.isDelivered()) {
+                        if (order != null && !order.isDelivered() && !order.isDeleted()) {
                             undeliveredItem = item;
                             undeliveredOrder = order;
                             break;
@@ -81,4 +81,63 @@ public class PurchaseOrderService implements IPurchaseOrderService {
         }
         return notifications;
     }
+
+    /**
+     * Marks the given purchase order as delivered and updates product stock.
+     * @param orderId The ID of the order to mark as delivered.
+     * @return true if successful, false otherwise.
+     */
+    public boolean markOrderAsDelivered(int orderId) {
+        try {
+            PurchaseOrderDao purchaseOrderDao = new PurchaseOrderDao();
+            PurchaseOrderItemDao purchaseOrderItemDao = new PurchaseOrderItemDao();
+            ProductService productService = new ProductService();
+
+            PurchaseOrder order = purchaseOrderDao.findById(orderId);
+            if (order == null || order.isDelivered() || order.isDeleted()) {
+                return false;
+            }
+
+            // Update product stock for each item in the order
+            List<PurchaseOrderItem> items = purchaseOrderItemDao.findAll();
+            for (PurchaseOrderItem item : items) {
+                if (item.getOrderID() == orderId) {
+                    Product product = productService.getProductById(item.getProductID());
+                    if (product != null) {
+                        int newStock = product.getCurrentStock() + item.getQuantity();
+                        product.setCurrentStock(newStock);
+                        productService.updateProduct(product);
+                    }
+                }
+            }
+
+            order.setDelivered(true);
+            purchaseOrderDao.update(order);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Marks the given purchase order as deleted.
+     * @param orderId The ID of the order to mark as deleted.
+     * @return true if successful, false otherwise.
+     */
+    public boolean markOrderAsDeleted(int orderId) {
+        try {
+            PurchaseOrderDao purchaseOrderDao = new PurchaseOrderDao();
+            PurchaseOrder order = purchaseOrderDao.findById(orderId);
+            // Prevent deletion if delivered
+            if (order == null || order.isDeleted() || order.isDelivered()) {
+                return false;
+            }
+            order.setDeleted(true);
+            purchaseOrderDao.update(order);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }
+
