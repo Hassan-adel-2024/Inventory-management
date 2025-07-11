@@ -37,11 +37,11 @@ public class InventoryManagement extends Application {
     }
 
     public static void main(String[] args) {
-        Connection conn = DatabaseConfig.getConnection();
-        if (conn != null) {
-            System.out.println("Connection test successful!");
-        }
-        DatabaseConfig.closeConnection();
+//        Connection conn = DatabaseConfig.getConnection();
+//        if (conn != null) {
+//            System.out.println("Connection test successful!");
+//        }
+//        DatabaseConfig.closeConnection();
         launch(args);
     }
 }

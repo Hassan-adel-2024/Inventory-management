@@ -49,7 +49,8 @@ public class ConsumptionService implements IConsumptionService {
 
                 Product product = productService.getProductById(productId);
                 int newStock = product.getCurrentStock() - quantityToConsume;
-                productService.updateProductStock(productId, newStock);
+                product.setCurrentStock(newStock);
+                productService.updateProduct(product);
 
                 consumedProducts.add(String.format("%s (-%d)", product.getName(), quantityToConsume));
 

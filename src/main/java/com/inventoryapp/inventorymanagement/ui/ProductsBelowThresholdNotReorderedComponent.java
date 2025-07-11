@@ -58,6 +58,7 @@ public class ProductsBelowThresholdNotReorderedComponent {
                     .collect(Collectors.toSet());
 
             for (Product product : products) {
+                // Show products with stock < threshold, including zero stock, and not yet reordered
                 if (product.getCurrentStock() < product.getReorderThreshold()
                         && !productsWithUndeliveredOrder.contains(product.getProductId())) {
                     rows.add(new ProductRow(
@@ -68,7 +69,7 @@ public class ProductsBelowThresholdNotReorderedComponent {
                     ));
                 }
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             // Handle error, optionally show in UI
         }
 

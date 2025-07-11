@@ -60,7 +60,8 @@ public class ProductConsumptionComponent {
         entries.addListener((javafx.collections.ListChangeListener<ProductEntry>) change -> {
             updateCheckoutButtonState(checkoutBtn);
             for (ProductEntry entry : entries) {
-                entry.quantityToConsume.addListener((obs, oldVal, newVal) -> updateCheckoutButtonState(checkoutBtn));
+                entry.quantityToConsume.addListener((obs,
+                                                     oldVal, newVal) -> updateCheckoutButtonState(checkoutBtn));
             }
         });
 
@@ -80,6 +81,10 @@ public class ProductConsumptionComponent {
         buttonBox.getChildren().addAll(refreshBtn, clearAllBtn, checkoutBtn);
 
         container.getChildren().addAll(titleLabel, buttonBox, consumeTable);
+
+        // Add RestockOrderComponent button below the table
+        RestockOrderComponent restockOrderComponent = new RestockOrderComponent();
+        container.getChildren().add(restockOrderComponent.getView());
 
         refreshData(); // Initial load
         updateCheckoutButtonState(checkoutBtn);
@@ -290,121 +295,7 @@ public class ProductConsumptionComponent {
         refreshData();
 
         // --- Automatic Purchase Order Logic ---
-        List<Product> productsBelowThreshold = getProductsBelowThreshold();
-        if (!productsBelowThreshold.isEmpty()) {
-            try {
-                PurchaseOrderDao purchaseOrderDao = new PurchaseOrderDao();
-                PurchaseOrderItemDao purchaseOrderItemDao = new PurchaseOrderItemDao();
-
-                List<String> notifications = new ArrayList<>();
-
-                for (Product product : productsBelowThreshold) {
-                    int threshold = product.getReorderThreshold();
-                    int currentStock = product.getCurrentStock();
-                    int maxOrderAmount = threshold * 2 - currentStock;
-
-                    // Find undelivered order for this product
-                    PurchaseOrderItem undeliveredItem = null;
-                    PurchaseOrder undeliveredOrder = null;
-                    List<PurchaseOrderItem> allItems = purchaseOrderItemDao.findAll();
-                    for (PurchaseOrderItem item : allItems) {
-                        if (item.getProductID() == product.getProductId()) {
-                            PurchaseOrder order = purchaseOrderDao.findById(item.getOrderID());
-                            if (order != null && !order.isDelivered()) {
-                                undeliveredItem = item;
-                                undeliveredOrder = order;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (undeliveredItem == null) {
-                        // No undelivered order, create new order and item
-                        PurchaseOrder order = new PurchaseOrder();
-                        order.setSupplierID(product.getSupplierId());
-                        order.setCreatedAt(new java.util.Date());
-                        order.setDelivered(false);
-                        purchaseOrderDao.save(order);
-
-                        PurchaseOrderItem item = new PurchaseOrderItem();
-                        item.setOrderID(order.getOrderID());
-                        item.setProductID(product.getProductId());
-                        item.setUnitPrice(product.getUnitPrice());
-                        item.setQuantity(maxOrderAmount);
-                        purchaseOrderItemDao.save(item);
-
-                        notifications.add("Start order for " + product.getName() + " (Qty: " + maxOrderAmount + ")");
-                    } else {
-                        // Undelivered order exists, update quantity
-                        int oldQty = undeliveredItem.getQuantity();
-                        int newQty = Math.max(0, maxOrderAmount - oldQty);
-                        int finalQty = Math.min(oldQty + newQty, threshold * 2 - currentStock);
-
-                        if (finalQty > oldQty) {
-                            undeliveredItem.setQuantity(finalQty);
-                            purchaseOrderItemDao.update(undeliveredItem);
-                            notifications.add("Follow-up modification for " + product.getName() +
-                                    " (Old Qty: " + oldQty + ", New Qty: " + finalQty + ")");
-                        } else {
-                            notifications.add("No modification needed for " + product.getName() +
-                                    " (Qty already at limit)");
-                        }
-                    }
-                }
-
-                if (!notifications.isEmpty()) {
-                    showNotification(String.join("\n", notifications));
-                }
-            } catch (Exception e) {
-                showNotification("Failed to place/modify automatic purchase order: " + e.getMessage());
-            }
-        }
-    }
-
-    // Helper to get products below threshold
-    private List<Product> getProductsBelowThreshold() {
-        List<Product> below = new ArrayList<>();
-        for (ProductEntry entry : entries) {
-            Product product = entry.product;
-            if (product.getCurrentStock() < product.getReorderThreshold()) {
-                below.add(product);
-            }
-        }
-        return below;
-    }
-
-    // Show notification for 10 seconds, with scroll bar if message is long
-    private void showNotification(String message) {
-        javafx.application.Platform.runLater(() -> {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Automatic Purchase Order");
-            alert.setHeaderText(null);
-
-            if (message.length() > 200) {
-                TextArea textArea = new TextArea(message);
-                textArea.setWrapText(true);
-                textArea.setEditable(false);
-                textArea.setPrefWidth(400);
-                textArea.setPrefHeight(250);
-
-                ScrollPane scrollPane = new ScrollPane(textArea);
-                scrollPane.setFitToWidth(true);
-                scrollPane.setPrefHeight(250);
-
-                alert.getDialogPane().setContent(scrollPane);
-            } else {
-                alert.setContentText(message);
-            }
-
-            alert.show();
-
-            new Thread(() -> {
-                try {
-                    Thread.sleep(10000);
-                } catch (InterruptedException ignored) {}
-                javafx.application.Platform.runLater(alert::close);
-            }).start();
-        });
+        // (Removed: now handled by RestockOrderComponent)
     }
 
     public void refreshData() {

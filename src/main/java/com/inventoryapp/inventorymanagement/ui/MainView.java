@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.inventoryapp.inventorymanagement.ui.RestockOrderComponent;
+
 public class MainView {
     private final ProductService productService = new ProductService();
     private final ConsumptionService consumptionService = new ConsumptionService(productService);
@@ -62,6 +64,10 @@ public class MainView {
             hideAllBtn,
             resultLabel
         );
+
+        // Add RestockOrderComponent so the button is always visible
+        RestockOrderComponent restockOrderComponent = new RestockOrderComponent();
+        root.getChildren().add(restockOrderComponent.getView());
 
         return root;
     }
