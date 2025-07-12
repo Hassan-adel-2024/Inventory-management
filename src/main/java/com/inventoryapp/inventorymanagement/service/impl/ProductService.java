@@ -1,5 +1,6 @@
 package com.inventoryapp.inventorymanagement.service.impl;
 
+import com.inventoryapp.inventorymanagement.beanfactory.DaoBeanFactory;
 import com.inventoryapp.inventorymanagement.dao.ProductDao;
 import com.inventoryapp.inventorymanagement.model.Product;
 import com.inventoryapp.inventorymanagement.service.IProductService;
@@ -7,7 +8,17 @@ import com.inventoryapp.inventorymanagement.service.IProductService;
 import java.util.List;
 
 public class ProductService implements IProductService {
-    private final ProductDao productDao = new ProductDao();
+    //    private final ProductDaoImpl productDaoImpl = new ProductDaoImpl();
+    // I used ProductDao interface instead of implementation class for proper abstraction and decoupling
+    private final ProductDao productDao;
+
+    public ProductService() {
+        this.productDao = DaoBeanFactory.getInstance().getDao(ProductDao.class);
+    }
+
+    public ProductService(ProductDao productDao) {
+        this.productDao = productDao;
+    }
 
     @Override
     public List<Product> getAllProducts() {
@@ -67,8 +78,8 @@ public class ProductService implements IProductService {
     public List<Product> getProductsBelowThreshold() {
         try {
             return productDao.findAll().stream()
-                .filter(p -> p.getCurrentStock() < p.getReorderThreshold())
-                .toList();
+                    .filter(p -> p.getCurrentStock() < p.getReorderThreshold())
+                    .toList();
         } catch (Exception e) {
             e.printStackTrace();
             return List.of();

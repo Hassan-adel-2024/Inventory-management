@@ -1,6 +1,6 @@
 package com.inventoryapp.inventorymanagement.ui;
 
-import com.inventoryapp.inventorymanagement.dao.PurchaseOrderDao;
+import com.inventoryapp.inventorymanagement.dao.impl.PurchaseOrderDaoImpl;
 import com.inventoryapp.inventorymanagement.model.PurchaseOrder;
 import com.inventoryapp.inventorymanagement.service.impl.PurchaseOrderService;
 import javafx.collections.FXCollections;
@@ -78,7 +78,7 @@ public class MarkOrderDeliveredComponent {
 
     private void refreshTable() {
         try {
-            PurchaseOrderDao dao = new PurchaseOrderDao();
+            PurchaseOrderDaoImpl dao = new PurchaseOrderDaoImpl();
             List<PurchaseOrder> orders = dao.findAll();
             ObservableList<PurchaseOrder> data = FXCollections.observableArrayList(orders);
             tableView.setItems(data);

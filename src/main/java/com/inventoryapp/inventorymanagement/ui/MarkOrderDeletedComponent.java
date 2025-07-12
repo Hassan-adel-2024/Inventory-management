@@ -1,6 +1,6 @@
 package com.inventoryapp.inventorymanagement.ui;
 
-import com.inventoryapp.inventorymanagement.dao.PurchaseOrderDao;
+import com.inventoryapp.inventorymanagement.dao.impl.PurchaseOrderDaoImpl;
 import com.inventoryapp.inventorymanagement.model.PurchaseOrder;
 import com.inventoryapp.inventorymanagement.service.impl.PurchaseOrderService;
 import javafx.collections.FXCollections;
@@ -69,7 +69,7 @@ public class MarkOrderDeletedComponent {
                     setGraphic(null);
                 } else {
                     PurchaseOrder order = getTableView().getItems().get(getIndex());
-                    btn.setDisable(order.isDeleted());
+                    btn.setDisable(order.isDeleted() || order.isDelivered());
                     setGraphic(btn);
                 }
             }
@@ -81,7 +81,7 @@ public class MarkOrderDeletedComponent {
 
     private void refreshTable() {
         try {
-            PurchaseOrderDao dao = new PurchaseOrderDao();
+            PurchaseOrderDaoImpl dao = new PurchaseOrderDaoImpl();
             List<PurchaseOrder> orders = dao.findAll();
             ObservableList<PurchaseOrder> data = FXCollections.observableArrayList(orders);
             tableView.setItems(data);

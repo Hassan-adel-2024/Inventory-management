@@ -1,11 +1,7 @@
 package com.inventoryapp.inventorymanagement.ui;
 
-import com.inventoryapp.inventorymanagement.dao.PurchaseOrderDao;
-import com.inventoryapp.inventorymanagement.dao.PurchaseOrderItemDao;
 import com.inventoryapp.inventorymanagement.dto.ConsumptionResponseDto;
 import com.inventoryapp.inventorymanagement.model.Product;
-import com.inventoryapp.inventorymanagement.model.PurchaseOrder;
-import com.inventoryapp.inventorymanagement.model.PurchaseOrderItem;
 import com.inventoryapp.inventorymanagement.service.impl.ConsumptionService;
 import com.inventoryapp.inventorymanagement.service.impl.ProductService;
 import javafx.beans.property.SimpleIntegerProperty;

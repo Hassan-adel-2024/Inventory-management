@@ -1,8 +1,11 @@
 package com.inventoryapp.inventorymanagement.service.impl;
 
+import com.inventoryapp.inventorymanagement.beanfactory.DaoBeanFactory;
+import com.inventoryapp.inventorymanagement.beanfactory.ServiceFactory;
 import com.inventoryapp.inventorymanagement.dto.ConsumptionResponseDto;
 import com.inventoryapp.inventorymanagement.model.Product;
 import com.inventoryapp.inventorymanagement.service.IConsumptionService;
+import com.inventoryapp.inventorymanagement.service.IProductService;
 import javafx.util.Pair;
 
 import java.util.ArrayList;
@@ -12,11 +15,16 @@ import java.util.logging.Logger;
 
 public class ConsumptionService implements IConsumptionService {
     private static final Logger logger = Logger.getLogger(ConsumptionService.class.getName());
-    private final ProductService productService;
+    private final IProductService productService;
 
-    public ConsumptionService(ProductService productService) {
+//    public ConsumptionService() {
+//        this.productService = ServiceFactory.getInstance().getService(ProductService.class);
+//    }
+
+    public ConsumptionService(IProductService productService) {
         this.productService = productService;
     }
+
 
     @Override
     public ConsumptionResponseDto consumeProduct(List<Pair<Integer, Integer>> productQuantities) {

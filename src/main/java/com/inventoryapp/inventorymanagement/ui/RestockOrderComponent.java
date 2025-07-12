@@ -1,6 +1,6 @@
 package com.inventoryapp.inventorymanagement.ui;
 
-import com.inventoryapp.inventorymanagement.service.impl.ServiceFactory;
+import com.inventoryapp.inventorymanagement.beanfactory.ServiceFactory;
 import com.inventoryapp.inventorymanagement.service.IPurchaseOrderService;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
@@ -20,7 +20,7 @@ public class RestockOrderComponent {
     }
 
     private void handleRestock() {
-        IPurchaseOrderService purchaseOrderService = ServiceFactory.getPurchaseOrderService();
+        IPurchaseOrderService purchaseOrderService = ServiceFactory.getInstance().getService(IPurchaseOrderService.class);
         List<String> notifications = ((com.inventoryapp.inventorymanagement.service.impl.PurchaseOrderService) purchaseOrderService)
                 .createPurchaseOrdersForLowStockProducts();
 

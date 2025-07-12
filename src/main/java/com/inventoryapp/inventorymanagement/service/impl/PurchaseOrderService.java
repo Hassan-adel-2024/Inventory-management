@@ -3,6 +3,8 @@ package com.inventoryapp.inventorymanagement.service.impl;
 import com.inventoryapp.inventorymanagement.dao.ProductDao;
 import com.inventoryapp.inventorymanagement.dao.PurchaseOrderDao;
 import com.inventoryapp.inventorymanagement.dao.PurchaseOrderItemDao;
+import com.inventoryapp.inventorymanagement.dao.impl.PurchaseOrderDaoImpl;
+import com.inventoryapp.inventorymanagement.dao.impl.PurchaseOrderItemDaoImpl;
 import com.inventoryapp.inventorymanagement.model.Product;
 import com.inventoryapp.inventorymanagement.model.PurchaseOrder;
 import com.inventoryapp.inventorymanagement.model.PurchaseOrderItem;
@@ -18,8 +20,8 @@ public class PurchaseOrderService implements IPurchaseOrderService {
         List<String> notifications = new ArrayList<>();
         try {
             ProductService productService = new ProductService();
-            PurchaseOrderDao purchaseOrderDao = new PurchaseOrderDao();
-            PurchaseOrderItemDao purchaseOrderItemDao = new PurchaseOrderItemDao();
+            PurchaseOrderDao purchaseOrderDao = new PurchaseOrderDaoImpl();
+            PurchaseOrderItemDao purchaseOrderItemDao = new PurchaseOrderItemDaoImpl();
 
             List<Product> products = productService.getProductsBelowThreshold();
 
@@ -89,8 +91,8 @@ public class PurchaseOrderService implements IPurchaseOrderService {
      */
     public boolean markOrderAsDelivered(int orderId) {
         try {
-            PurchaseOrderDao purchaseOrderDao = new PurchaseOrderDao();
-            PurchaseOrderItemDao purchaseOrderItemDao = new PurchaseOrderItemDao();
+            PurchaseOrderDao purchaseOrderDao = new PurchaseOrderDaoImpl();
+            PurchaseOrderItemDao purchaseOrderItemDao = new PurchaseOrderItemDaoImpl();
             ProductService productService = new ProductService();
 
             PurchaseOrder order = purchaseOrderDao.findById(orderId);
@@ -126,7 +128,7 @@ public class PurchaseOrderService implements IPurchaseOrderService {
      */
     public boolean markOrderAsDeleted(int orderId) {
         try {
-            PurchaseOrderDao purchaseOrderDao = new PurchaseOrderDao();
+            PurchaseOrderDao purchaseOrderDao = new PurchaseOrderDaoImpl();
             PurchaseOrder order = purchaseOrderDao.findById(orderId);
             // Prevent deletion if delivered
             if (order == null || order.isDeleted() || order.isDelivered()) {
@@ -140,4 +142,3 @@ public class PurchaseOrderService implements IPurchaseOrderService {
         }
     }
 }
-

@@ -1,8 +1,8 @@
 package com.inventoryapp.inventorymanagement.ui;
 
-import com.inventoryapp.inventorymanagement.dao.ProductDao;
-import com.inventoryapp.inventorymanagement.dao.PurchaseOrderDao;
-import com.inventoryapp.inventorymanagement.dao.PurchaseOrderItemDao;
+import com.inventoryapp.inventorymanagement.dao.impl.ProductDaoImpl;
+import com.inventoryapp.inventorymanagement.dao.impl.PurchaseOrderDaoImpl;
+import com.inventoryapp.inventorymanagement.dao.impl.PurchaseOrderItemDaoImpl;
 import com.inventoryapp.inventorymanagement.model.Product;
 import com.inventoryapp.inventorymanagement.model.PurchaseOrder;
 import com.inventoryapp.inventorymanagement.model.PurchaseOrderItem;
@@ -12,7 +12,6 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
 
-import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -20,6 +19,17 @@ public class ProductsBelowThresholdNotReorderedComponent {
     private final VBox container = new VBox(10);
 
     public ProductsBelowThresholdNotReorderedComponent() {
+        TableView<ProductRow> table = createTable();
+        try {
+            List<ProductRow> rows = loadProductData();
+            table.getItems().addAll(rows);
+        } catch (Exception e) {
+            e.printStackTrace(); // Don't silently swallow exceptions
+        }
+        container.getChildren().add(table);
+    }
+
+    private TableView<ProductRow> createTable() {
         TableView<ProductRow> table = new TableView<>();
         table.setPrefHeight(400);
 
@@ -36,45 +46,44 @@ public class ProductsBelowThresholdNotReorderedComponent {
         thresholdCol.setCellValueFactory(new PropertyValueFactory<>("threshold"));
 
         table.getColumns().addAll(idCol, nameCol, stockCol, thresholdCol);
+        return table;
+    }
 
-        List<ProductRow> rows = new ArrayList<>();
-        try {
-            ProductDao productDao = new ProductDao();
-            PurchaseOrderDao orderDao = new PurchaseOrderDao();
-            PurchaseOrderItemDao itemDao = new PurchaseOrderItemDao();
+    private List<ProductRow> loadProductData() throws Exception {
+        ProductDaoImpl productDaoImpl = new ProductDaoImpl();
+        PurchaseOrderDaoImpl orderDao = new PurchaseOrderDaoImpl();
+        PurchaseOrderItemDaoImpl itemDao = new PurchaseOrderItemDaoImpl();
 
-            List<Product> products = productDao.findAll();
-            List<PurchaseOrder> orders = orderDao.findAll();
-            List<PurchaseOrderItem> items = itemDao.findAll();
+        List<Product> products = productDaoImpl.findAll();
+        List<PurchaseOrder> allOrders = orderDao.findAll();
+        List<PurchaseOrderItem> allItems = itemDao.findAll();
 
-            Set<Integer> productsWithUndeliveredOrder = items.stream()
-                    .filter(item -> {
-                        PurchaseOrder order = orders.stream()
-                                .filter(o -> o.getOrderID() == item.getOrderID())
-                                .findFirst().orElse(null);
-                        return order != null && !order.isDelivered();
-                    })
-                    .map(PurchaseOrderItem::getProductID)
-                    .collect(Collectors.toSet());
+        // Get all active (not delivered and not deleted) order items
+        Set<Integer> productsWithActiveOrders = allItems.stream()
+                .filter(item -> {
+                    PurchaseOrder order = findOrderById(allOrders, item.getOrderID());
+                    return order != null && !order.isDelivered() && !order.isDeleted();
+                })
+                .map(PurchaseOrderItem::getProductID)
+                .collect(Collectors.toSet());
 
-            for (Product product : products) {
-                // Show products with stock < threshold, including zero stock, and not yet reordered
-                if (product.getCurrentStock() < product.getReorderThreshold()
-                        && !productsWithUndeliveredOrder.contains(product.getProductId())) {
-                    rows.add(new ProductRow(
-                            product.getProductId(),
-                            product.getName(),
-                            product.getCurrentStock(),
-                            product.getReorderThreshold()
-                    ));
-                }
-            }
-        } catch (Exception e) {
-            // Handle error, optionally show in UI
-        }
+        return products.stream()
+                .filter(product -> product.getCurrentStock() < product.getReorderThreshold())
+                .filter(product -> !productsWithActiveOrders.contains(product.getProductId()))
+                .map(product -> new ProductRow(
+                        product.getProductId(),
+                        product.getName(),
+                        product.getCurrentStock(),
+                        product.getReorderThreshold()
+                ))
+                .collect(Collectors.toList());
+    }
 
-        table.getItems().addAll(rows);
-        container.getChildren().add(table);
+    private PurchaseOrder findOrderById(List<PurchaseOrder> orders, int orderId) {
+        return orders.stream()
+                .filter(o -> o.getOrderID() == orderId)
+                .findFirst()
+                .orElse(null);
     }
 
     public Node getView() {

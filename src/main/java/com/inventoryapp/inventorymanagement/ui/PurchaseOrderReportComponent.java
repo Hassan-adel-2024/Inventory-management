@@ -2,10 +2,10 @@ package com.inventoryapp.inventorymanagement.ui;
 
 // ...existing imports...
 
-import com.inventoryapp.inventorymanagement.dao.ProductDao;
-import com.inventoryapp.inventorymanagement.dao.PurchaseOrderDao;
-import com.inventoryapp.inventorymanagement.dao.PurchaseOrderItemDao;
-import com.inventoryapp.inventorymanagement.dao.SupplierDao;
+import com.inventoryapp.inventorymanagement.dao.impl.ProductDaoImpl;
+import com.inventoryapp.inventorymanagement.dao.impl.PurchaseOrderDaoImpl;
+import com.inventoryapp.inventorymanagement.dao.impl.PurchaseOrderItemDaoImpl;
+import com.inventoryapp.inventorymanagement.dao.impl.SupplierDaoImpl;
 import com.inventoryapp.inventorymanagement.model.Product;
 import com.inventoryapp.inventorymanagement.model.PurchaseOrder;
 import com.inventoryapp.inventorymanagement.model.PurchaseOrderItem;
@@ -20,8 +20,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.inventoryapp.inventorymanagement.ui.ReportRow;
 
 public class PurchaseOrderReportComponent {
     private final VBox container = new VBox(10);
@@ -52,19 +50,19 @@ public class PurchaseOrderReportComponent {
 
         List<ReportRow> rows = new ArrayList<>();
         try {
-            PurchaseOrderDao orderDao = new PurchaseOrderDao();
-            PurchaseOrderItemDao itemDao = new PurchaseOrderItemDao();
-            ProductDao productDao = new ProductDao();
-            SupplierDao supplierDao = new SupplierDao();
+            PurchaseOrderDaoImpl orderDao = new PurchaseOrderDaoImpl();
+            PurchaseOrderItemDaoImpl itemDao = new PurchaseOrderItemDaoImpl();
+            ProductDaoImpl productDaoImpl = new ProductDaoImpl();
+            SupplierDaoImpl supplierDaoImpl = new SupplierDaoImpl();
 
             List<PurchaseOrder> orders = orderDao.findAll();
             List<PurchaseOrderItem> items = itemDao.findAll();
 
             Map<Integer, Product> productMap = new HashMap<>();
-            for (Product p : productDao.findAll()) productMap.put(p.getProductId(), p);
+            for (Product p : productDaoImpl.findAll()) productMap.put(p.getProductId(), p);
 
             Map<Integer, Supplier> supplierMap = new HashMap<>();
-            for (Supplier s : supplierDao.findAll()) supplierMap.put(s.getSupplierId(), s);
+            for (Supplier s : supplierDaoImpl.findAll()) supplierMap.put(s.getSupplierId(), s);
 
             for (PurchaseOrderItem item : items) {
                 PurchaseOrder order = orders.stream()
