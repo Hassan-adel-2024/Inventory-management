@@ -1,7 +1,9 @@
 package com.inventoryapp.inventorymanagement.ui;
 
+import com.inventoryapp.inventorymanagement.beanfactory.ServiceFactory;
 import com.inventoryapp.inventorymanagement.dao.impl.PurchaseOrderDaoImpl;
 import com.inventoryapp.inventorymanagement.model.PurchaseOrder;
+import com.inventoryapp.inventorymanagement.service.IPurchaseOrderService;
 import com.inventoryapp.inventorymanagement.service.impl.PurchaseOrderService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -9,6 +11,7 @@ import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 
+import java.sql.SQLException;
 import java.util.List;
 
 public class MarkOrderDeletedComponent {
@@ -51,8 +54,14 @@ public class MarkOrderDeletedComponent {
                 btn.setOnAction(e -> {
                     PurchaseOrder order = getTableView().getItems().get(getIndex());
                     if (!order.isDeleted()&& !order.isDelivered()) {
-                        PurchaseOrderService service = new PurchaseOrderService();
-                        boolean success = service.markOrderAsDeleted(order.getOrderID());
+//                        PurchaseOrderService service = new PurchaseOrderService();
+                        IPurchaseOrderService service = ServiceFactory.getInstance().getService(IPurchaseOrderService.class);
+                        boolean success = false;
+                        try {
+                            success = service.markOrderAsDeleted(order.getOrderID());
+                        } catch (SQLException ex) {
+                            throw new RuntimeException(ex);
+                        }
                         result.setText(success ? "Order marked as deleted." : "Failed to mark order.");
                         refreshTable();
                     }

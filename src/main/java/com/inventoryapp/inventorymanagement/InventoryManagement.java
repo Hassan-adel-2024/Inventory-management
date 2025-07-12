@@ -1,6 +1,5 @@
 package com.inventoryapp.inventorymanagement;
 
-import com.inventoryapp.inventorymanagement.db.DatabaseConfig;
 import com.inventoryapp.inventorymanagement.ui.MainView;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -9,7 +8,6 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.sql.Connection;
 
 public class InventoryManagement extends Application {
     @Override

@@ -1,5 +1,9 @@
 package com.inventoryapp.inventorymanagement.beanfactory;
 
+import com.inventoryapp.inventorymanagement.dao.ProductDao;
+import com.inventoryapp.inventorymanagement.dao.PurchaseOrderDao;
+import com.inventoryapp.inventorymanagement.dao.PurchaseOrderItemDao;
+import com.inventoryapp.inventorymanagement.dao.SupplierDao;
 import com.inventoryapp.inventorymanagement.service.IConsumptionService;
 import com.inventoryapp.inventorymanagement.service.IProductService;
 import com.inventoryapp.inventorymanagement.service.IPurchaseOrderService;
@@ -15,13 +19,24 @@ import java.util.Map;
 public class ServiceFactory {
     private static volatile ServiceFactory instance;
     private final Map<Class<?>, Object> serviceRegistry = new HashMap<>();
+    DaoBeanFactory daoFactory = DaoBeanFactory.getInstance();
+    // Initialize DAOs first
+
+    ProductDao productDao = daoFactory.getDao(ProductDao.class);
+    PurchaseOrderDao purchaseOrderDao = daoFactory.getDao(PurchaseOrderDao.class);
+    PurchaseOrderItemDao purchaseOrderItemDao = daoFactory.getDao(PurchaseOrderItemDao.class);
+    SupplierDao supplierDao = daoFactory.getDao(SupplierDao.class);
 
     private ServiceFactory() {
         // Initialize all service implementations
         IProductService productService = new ProductService();
         serviceRegistry.put(IProductService.class, productService);
 
-        IPurchaseOrderService purchaseOrderService = new PurchaseOrderService();
+        IPurchaseOrderService purchaseOrderService = new PurchaseOrderService(
+                purchaseOrderDao,
+                purchaseOrderItemDao,
+                productService
+        );
         serviceRegistry.put(IPurchaseOrderService.class, purchaseOrderService);
 
         ISupplierService supplierService = new SupplierService();
