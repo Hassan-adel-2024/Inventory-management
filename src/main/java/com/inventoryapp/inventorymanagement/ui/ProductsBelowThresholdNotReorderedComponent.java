@@ -7,9 +7,11 @@ import com.inventoryapp.inventorymanagement.model.Product;
 import com.inventoryapp.inventorymanagement.model.PurchaseOrder;
 import com.inventoryapp.inventorymanagement.model.PurchaseOrderItem;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import java.util.*;
@@ -17,16 +19,25 @@ import java.util.stream.Collectors;
 
 public class ProductsBelowThresholdNotReorderedComponent {
     private final VBox container = new VBox(10);
+    private final TableView<ProductRow> table;
 
     public ProductsBelowThresholdNotReorderedComponent() {
-        TableView<ProductRow> table = createTable();
+        this.table = createTable();
+        
+        // Create refresh button
+        Button refreshButton = new Button("Refresh");
+        refreshButton.setOnAction(e -> refreshData());
+        
+        HBox buttonContainer = new HBox(10);
+        buttonContainer.getChildren().add(refreshButton);
+        
         try {
-            List<ProductRow> rows = loadProductData();
-            table.getItems().addAll(rows);
+            refreshData();
         } catch (Exception e) {
             e.printStackTrace(); // Don't silently swallow exceptions
         }
-        container.getChildren().add(table);
+        
+        container.getChildren().addAll(buttonContainer, table);
     }
 
     private TableView<ProductRow> createTable() {
@@ -84,6 +95,16 @@ public class ProductsBelowThresholdNotReorderedComponent {
                 .filter(o -> o.getOrderID() == orderId)
                 .findFirst()
                 .orElse(null);
+    }
+
+    public void refreshData() {
+        try {
+            List<ProductRow> rows = loadProductData();
+            table.getItems().clear();
+            table.getItems().addAll(rows);
+        } catch (Exception e) {
+            e.printStackTrace(); // Don't silently swallow exceptions
+        }
     }
 
     public Node getView() {

@@ -7,6 +7,7 @@ import com.inventoryapp.inventorymanagement.model.Product;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class ProductDaoImpl implements ProductDao {
     @Override
@@ -162,6 +163,63 @@ public class ProductDaoImpl implements ProductDao {
         return 0;
     }
 
+    @Override
+    public void updateMultipleProductStocks(Map<Integer, Integer> productStockUpdates) throws SQLException {
+        String sql = "UPDATE Products SET CurrentStock = ? WHERE ProductID = ?";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
+            for (Map.Entry<Integer, Integer> entry : productStockUpdates.entrySet()) {
+                stmt.setInt(1, entry.getValue());
+                stmt.setInt(2, entry.getKey());
+                stmt.addBatch();
+            }
+            stmt.executeBatch();
+        }
+    }
 
+    @Override
+    public List<Product> getProductsByIds(List<Integer> productIds) throws SQLException {
+        if (productIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        StringBuilder sql = new StringBuilder("SELECT * FROM Products WHERE ProductID IN (");
+        for (int i = 0; i < productIds.size(); i++) {
+            if (i > 0) sql.append(",");
+            sql.append("?");
+        }
+        sql.append(")");
+
+        List<Product> products = new ArrayList<>();
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < productIds.size(); i++) {
+                stmt.setInt(i + 1, productIds.get(i));
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    products.add(mapResultSetToProduct(rs));
+                }
+            }
+        }
+        return products;
+    }
+
+    @Override
+    public boolean validateStockAvailability(int productId, int quantity) throws SQLException {
+        String sql = "SELECT CurrentStock FROM Products WHERE ProductID = ? AND CurrentStock >= ?";
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, productId);
+            stmt.setInt(2, quantity);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next(); // Returns true if product exists and has sufficient stock
+            }
+        }
+    }
 }

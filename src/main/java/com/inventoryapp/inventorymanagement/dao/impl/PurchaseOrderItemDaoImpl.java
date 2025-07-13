@@ -108,4 +108,68 @@ public class PurchaseOrderItemDaoImpl implements PurchaseOrderItemDao {
             stmt.executeUpdate();
         }
     }
+
+    @Override
+    public List<PurchaseOrderItem> findByOrderId(int orderId) throws SQLException {
+        String sql = "SELECT * FROM OrderItems WHERE OrderID = ?";
+        List<PurchaseOrderItem> items = new ArrayList<>();
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, orderId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    items.add(new PurchaseOrderItem(
+                            rs.getInt("OrderItemID"),
+                            rs.getInt("OrderID"),
+                            rs.getInt("ProductID"),
+                            rs.getDouble("UnitPrice"),
+                            rs.getInt("Quantity")
+                    ));
+                }
+            }
+        }
+        return items;
+    }
+
+    @Override
+    public List<PurchaseOrderItem> findUndeliveredItemsByProductId(int productId) throws SQLException {
+        String sql = "SELECT oi.* FROM OrderItems oi " +
+                    "JOIN PurchaseOrders po ON oi.OrderID = po.OrderID " +
+                    "WHERE oi.ProductID = ? AND po.IsDelivered = 0 AND po.IsDeleted = 0";
+        List<PurchaseOrderItem> items = new ArrayList<>();
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, productId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    items.add(new PurchaseOrderItem(
+                            rs.getInt("OrderItemID"),
+                            rs.getInt("OrderID"),
+                            rs.getInt("ProductID"),
+                            rs.getDouble("UnitPrice"),
+                            rs.getInt("Quantity")
+                    ));
+                }
+            }
+        }
+        return items;
+    }
+
+    @Override
+    public void updateQuantity(int orderItemId, int newQuantity) throws SQLException {
+        String sql = "UPDATE OrderItems SET Quantity = ? WHERE OrderItemID = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, newQuantity);
+            stmt.setInt(2, orderItemId);
+            stmt.executeUpdate();
+        }
+    }
 }

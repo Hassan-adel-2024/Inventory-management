@@ -4,7 +4,6 @@ import com.inventoryapp.inventorymanagement.beanfactory.ServiceFactory;
 import com.inventoryapp.inventorymanagement.dao.impl.PurchaseOrderDaoImpl;
 import com.inventoryapp.inventorymanagement.model.PurchaseOrder;
 import com.inventoryapp.inventorymanagement.service.IPurchaseOrderService;
-import com.inventoryapp.inventorymanagement.service.impl.PurchaseOrderService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
@@ -13,13 +12,21 @@ import javafx.scene.layout.VBox;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class MarkOrderDeletedComponent {
     private final VBox container = new VBox(10);
     private final TableView<PurchaseOrder> tableView = new TableView<>();
     private final Label result = new Label();
+    private Consumer<Void> refreshCallback;
 
     public MarkOrderDeletedComponent() {
+        this(null);
+    }
+
+    public MarkOrderDeletedComponent(Consumer<Void> refreshCallback) {
+        this.refreshCallback = refreshCallback;
+        
         Label label = new Label("All Purchase Orders (Mark as Deleted)");
         setupTable();
         refreshTable();
@@ -64,6 +71,11 @@ public class MarkOrderDeletedComponent {
                         }
                         result.setText(success ? "Order marked as deleted." : "Failed to mark order.");
                         refreshTable();
+                        
+                        // Trigger refresh callback if provided
+                        if (refreshCallback != null) {
+                            refreshCallback.accept(null);
+                        }
                     }
                     else if (order.isDelivered()) {
                         result.setText("Delivered orders cannot be deleted.");

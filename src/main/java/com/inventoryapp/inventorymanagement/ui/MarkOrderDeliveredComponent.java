@@ -13,13 +13,21 @@ import javafx.scene.layout.VBox;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class MarkOrderDeliveredComponent {
     private final VBox container = new VBox(10);
     private final TableView<PurchaseOrder> tableView = new TableView<>();
     private final Label result = new Label();
+    private Consumer<Void> refreshCallback;
 
     public MarkOrderDeliveredComponent() {
+        this(null);
+    }
+
+    public MarkOrderDeliveredComponent(Consumer<Void> refreshCallback) {
+        this.refreshCallback = refreshCallback;
+        
         Label label = new Label("All Purchase Orders");
         setupTable();
         refreshTable();
@@ -64,6 +72,11 @@ public class MarkOrderDeliveredComponent {
                         }
                         result.setText(success ? "Order marked as delivered." : "Failed to mark order.");
                         refreshTable();
+                        
+                        // Trigger refresh callback if provided
+                        if (refreshCallback != null) {
+                            refreshCallback.accept(null);
+                        }
                     }
                 });
             }

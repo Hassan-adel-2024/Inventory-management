@@ -61,7 +61,12 @@ public class MainView {
         );
 
         // Add RestockOrderComponent so the button is always visible
-        RestockOrderComponent restockOrderComponent = new RestockOrderComponent();
+        RestockOrderComponent restockOrderComponent = new RestockOrderComponent(v -> {
+            // Refresh the products below threshold component if it's shown
+            if (productsBelowThresholdNotReorderedComponent != null && productsBelowThresholdNotReorderedShown) {
+                productsBelowThresholdNotReorderedComponent.refreshData();
+            }
+        });
         root.getChildren().add(restockOrderComponent.getView());
 
         return root;
@@ -168,6 +173,8 @@ public class MainView {
             root.getChildren().add(productsBelowThresholdNotReorderedComponent.getView());
             productsBelowThresholdNotReorderedShown = true;
         }
+        // Refresh data when showing the component
+        productsBelowThresholdNotReorderedComponent.refreshData();
     }
 
     private void hideProductsBelowThresholdNotReorderedComponent() {
@@ -179,7 +186,12 @@ public class MainView {
 
     private void toggleMarkOrderDelivered() {
         if (markOrderDeliveredComponent == null) {
-            markOrderDeliveredComponent = new MarkOrderDeliveredComponent();
+            markOrderDeliveredComponent = new MarkOrderDeliveredComponent(v -> {
+                // Refresh the products below threshold component if it's shown
+                if (productsBelowThresholdNotReorderedComponent != null && productsBelowThresholdNotReorderedShown) {
+                    productsBelowThresholdNotReorderedComponent.refreshData();
+                }
+            });
             root.getChildren().add(markOrderDeliveredComponent.getView());
         }
         Node view = markOrderDeliveredComponent.getView();
@@ -192,7 +204,12 @@ public class MainView {
 
     private void toggleMarkOrderDeleted() {
         if (markOrderDeletedComponent == null) {
-            markOrderDeletedComponent = new MarkOrderDeletedComponent();
+            markOrderDeletedComponent = new MarkOrderDeletedComponent(v -> {
+                // Refresh the products below threshold component if it's shown
+                if (productsBelowThresholdNotReorderedComponent != null && productsBelowThresholdNotReorderedShown) {
+                    productsBelowThresholdNotReorderedComponent.refreshData();
+                }
+            });
             root.getChildren().add(markOrderDeletedComponent.getView());
         }
         Node view = markOrderDeletedComponent.getView();

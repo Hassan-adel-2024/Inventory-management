@@ -77,7 +77,8 @@ public class PurchaseOrderDaoImpl implements PurchaseOrderDao {
 
     @Override
     public void update(PurchaseOrder purchaseOrder) throws SQLException {
-        String sql = "UPDATE PurchaseOrders SET SupplierID = ?, CreatedAt = ?, IsDelivered = ?, IsDeleted = ? WHERE OrderID = ?";
+        String sql = "UPDATE PurchaseOrders SET SupplierID = ?, CreatedAt = ?," +
+                " IsDelivered = ?, IsDeleted = ? WHERE OrderID = ?";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -101,4 +102,45 @@ public class PurchaseOrderDaoImpl implements PurchaseOrderDao {
         }
     }
 
+    @Override
+    public List<PurchaseOrder> findUndeliveredOrders() throws SQLException {
+        String sql = "SELECT * FROM PurchaseOrders WHERE IsDelivered = 0 AND IsDeleted = 0";
+        List<PurchaseOrder> orders = new ArrayList<>();
+
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                orders.add(new PurchaseOrder(
+                        rs.getInt("OrderID"),
+                        rs.getInt("SupplierID"),
+                        rs.getDate("CreatedAt"),
+                        rs.getBoolean("IsDelivered"),
+                        rs.getBoolean("IsDeleted")
+                ));
+            }
+        }
+        return orders;
+    }
+
+    @Override
+    public void markAsDelivered(int orderId) throws SQLException {
+        String sql = "UPDATE PurchaseOrders SET IsDelivered = 1 WHERE OrderID = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, orderId);
+            stmt.executeUpdate();
+        }
+    }
+
+    @Override
+    public void markAsDeleted(int orderId) throws SQLException {
+        String sql = "UPDATE PurchaseOrders SET IsDeleted = 1 WHERE OrderID = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, orderId);
+            stmt.executeUpdate();
+        }
+    }
 }

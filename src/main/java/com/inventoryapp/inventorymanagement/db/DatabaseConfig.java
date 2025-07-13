@@ -5,10 +5,10 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DatabaseConfig {
-    private static final String URL = "jdbc:sqlserver://localhost:1433;databaseName=RestaurantInventorySystem;encrypt=false";
+    private static final String URL = "jdbc:sqlserver://localhost:1433;databaseName=InventoryManagement;encrypt=false";
 
-    private static final String USER = "hassan";         // Replace with your SQL Server username
-    private static final String PASSWORD = "admin"; // Replace with your password
+    private static final String USER = "DB_USER";         // Replace with your SQL Server username
+    private static final String PASSWORD = "DB_PASSWORD"; // Replace with your password
 
     private static Connection connection;
 

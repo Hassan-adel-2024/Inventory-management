@@ -17,19 +17,23 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ServiceFactory {
+    /**
+     * Singleton instance of DaoBeanFactory
+     * volatile ensures that multiple threads can handle the instance safely
+     */
     private static volatile ServiceFactory instance;
     private final Map<Class<?>, Object> serviceRegistry = new HashMap<>();
-    DaoBeanFactory daoFactory = DaoBeanFactory.getInstance();
-    // Initialize DAOs first
-
-    ProductDao productDao = daoFactory.getDao(ProductDao.class);
-    PurchaseOrderDao purchaseOrderDao = daoFactory.getDao(PurchaseOrderDao.class);
-    PurchaseOrderItemDao purchaseOrderItemDao = daoFactory.getDao(PurchaseOrderItemDao.class);
-    SupplierDao supplierDao = daoFactory.getDao(SupplierDao.class);
+    private final DaoBeanFactory daoFactory = DaoBeanFactory.getInstance();
 
     private ServiceFactory() {
-        // Initialize all service implementations
-        IProductService productService = new ProductService();
+        // Initialize DAOs first
+        ProductDao productDao = daoFactory.getDao(ProductDao.class);
+        PurchaseOrderDao purchaseOrderDao = daoFactory.getDao(PurchaseOrderDao.class);
+        PurchaseOrderItemDao purchaseOrderItemDao = daoFactory.getDao(PurchaseOrderItemDao.class);
+        SupplierDao supplierDao = daoFactory.getDao(SupplierDao.class);
+
+        // Initialize all service implementations with proper dependencies
+        IProductService productService = new ProductService(productDao);
         serviceRegistry.put(IProductService.class, productService);
 
         IPurchaseOrderService purchaseOrderService = new PurchaseOrderService(

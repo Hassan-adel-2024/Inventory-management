@@ -1,6 +1,5 @@
 package com.inventoryapp.inventorymanagement.service.impl;
 
-import com.inventoryapp.inventorymanagement.dao.ProductDao;
 import com.inventoryapp.inventorymanagement.dao.PurchaseOrderDao;
 import com.inventoryapp.inventorymanagement.dao.PurchaseOrderItemDao;
 import com.inventoryapp.inventorymanagement.model.Product;
@@ -13,9 +12,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class PurchaseOrderService implements IPurchaseOrderService {
-
+    private static final Logger logger = Logger.getLogger(PurchaseOrderService.class.getName());
+    
     private final PurchaseOrderDao purchaseOrderDao;
     private final PurchaseOrderItemDao purchaseOrderItemDao;
     private final IProductService productService;
@@ -38,22 +39,9 @@ public class PurchaseOrderService implements IPurchaseOrderService {
             int currentStock = product.getCurrentStock();
             int maxOrderAmount = threshold * 2 - currentStock;
 
-            List<PurchaseOrderItem> allItems = purchaseOrderItemDao.findAll();
-            PurchaseOrderItem undeliveredItem = null;
-            PurchaseOrder undeliveredOrder = null;
+            List<PurchaseOrderItem> undeliveredItems = purchaseOrderItemDao.findUndeliveredItemsByProductId(product.getProductId());
 
-            for (PurchaseOrderItem item : allItems) {
-                if (item.getProductID() == product.getProductId()) {
-                    PurchaseOrder order = purchaseOrderDao.findById(item.getOrderID());
-                    if (order != null && !order.isDelivered() && !order.isDeleted()) {
-                        undeliveredItem = item;
-                        undeliveredOrder = order;
-                        break;
-                    }
-                }
-            }
-
-            if (undeliveredItem == null) {
+            if (undeliveredItems.isEmpty()) {
                 PurchaseOrder order = new PurchaseOrder();
                 order.setSupplierID(product.getSupplierId());
                 order.setCreatedAt(new Date());
@@ -68,16 +56,19 @@ public class PurchaseOrderService implements IPurchaseOrderService {
                 purchaseOrderItemDao.save(item);
 
                 notifications.add("Start order for " + product.getName() + " (Qty: " + maxOrderAmount + ")");
+                logger.info("Created new purchase order for product: " + product.getName());
             } else {
+                // Modify existing order
+                PurchaseOrderItem undeliveredItem = undeliveredItems.get(0); // Take the first undelivered item
                 int oldQty = undeliveredItem.getQuantity();
                 int newQty = Math.max(0, maxOrderAmount - oldQty);
                 int finalQty = Math.min(oldQty + newQty, threshold * 2 - currentStock);
 
                 if (finalQty > oldQty) {
-                    undeliveredItem.setQuantity(finalQty);
-                    purchaseOrderItemDao.update(undeliveredItem);
+                    purchaseOrderItemDao.updateQuantity(undeliveredItem.getOrderItemID(), finalQty);
                     notifications.add("Follow-up modification for " + product.getName() +
                             " (Old Qty: " + oldQty + ", New Qty: " + finalQty + ")");
+                    logger.info("Modified existing purchase order for product: " + product.getName());
                 } else {
                     notifications.add("No modification needed for " + product.getName() +
                             " (Qty already at limit)");
@@ -91,33 +82,36 @@ public class PurchaseOrderService implements IPurchaseOrderService {
     public boolean markOrderAsDelivered(int orderId) throws SQLException {
         PurchaseOrder order = purchaseOrderDao.findById(orderId);
         if (order == null || order.isDelivered() || order.isDeleted()) {
+            logger.warning("Cannot mark order as delivered: Order ID " + orderId + " not found or already processed");
             return false;
         }
 
-        List<PurchaseOrderItem> items = purchaseOrderItemDao.findAll();
+        List<PurchaseOrderItem> items = purchaseOrderItemDao.findByOrderId(orderId);
+        
         for (PurchaseOrderItem item : items) {
-            if (item.getOrderID() == orderId) {
-                Product product = productService.getProductById(item.getProductID());
-                if (product != null) {
-                    int newStock = product.getCurrentStock() + item.getQuantity();
-                    product.setCurrentStock(newStock);
-                    productService.updateProduct(product);
-                }
+            Product product = productService.getProductById(item.getProductID());
+            if (product != null) {
+                int newStock = product.getCurrentStock() + item.getQuantity();
+                product.setCurrentStock(newStock);
+                productService.updateProduct(product);
+                logger.info("Updated stock for product: " + product.getName() + " (+" + item.getQuantity() + ")");
             }
         }
 
-        order.setDelivered(true);
-        purchaseOrderDao.update(order);
+        purchaseOrderDao.markAsDelivered(orderId);
+        logger.info("Order marked as delivered: " + orderId);
         return true;
     }
 
     public boolean markOrderAsDeleted(int orderId) throws SQLException {
         PurchaseOrder order = purchaseOrderDao.findById(orderId);
         if (order == null || order.isDeleted() || order.isDelivered()) {
+            logger.warning("Cannot mark order as deleted: Order ID " + orderId + " not found or already processed");
             return false;
         }
-        order.setDeleted(true);
-        purchaseOrderDao.update(order);
+        
+        purchaseOrderDao.markAsDeleted(orderId);
+        logger.info("Order marked as deleted: " + orderId);
         return true;
     }
 }

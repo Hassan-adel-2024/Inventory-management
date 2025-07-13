@@ -19,7 +19,6 @@ import javafx.util.Pair;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 
 public class ProductConsumptionComponent {
     private final ProductService productService;
@@ -119,7 +118,7 @@ public class ProductConsumptionComponent {
         messageCol.setCellValueFactory(data -> data.getValue().statusMessage);
         messageCol.setPrefWidth(200);
 
-        table.setRowFactory(tv -> new TableRow<ProductEntry>() {
+        table.setRowFactory(tv -> new TableRow<>() {
             @Override
             protected void updateItem(ProductEntry entry, boolean empty) {
                 super.updateItem(entry, empty);
@@ -146,19 +145,43 @@ public class ProductConsumptionComponent {
     }
 
     private Callback<TableColumn<ProductEntry, Number>, TableCell<ProductEntry, Number>> getQuantityCellFactory() {
-        return col -> new TableCell<ProductEntry, Number>() {
+        return col -> new TableCell<>() {
             private final Spinner<Integer> spinner = new Spinner<>(0, Integer.MAX_VALUE, 0);
+            private SpinnerValueFactory.IntegerSpinnerValueFactory valueFactory;
 
             {
                 spinner.setMaxWidth(80);
                 spinner.setEditable(true); // Allow direct user input
 
-                // Accept user input in spinner
+                // Accept user input in spinner with better keyboard handling
                 spinner.getEditor().textProperty().addListener((obs, oldText, newText) -> {
-                    try {
-                        int value = Integer.parseInt(newText);
-                        spinner.getValueFactory().setValue(Math.max(0, value));
-                    } catch (NumberFormatException ignored) {}
+                    if (newText != null && !newText.trim().isEmpty()) {
+                        try {
+                            int value = Integer.parseInt(newText.trim());
+                            if (value >= 0) {
+                                spinner.getValueFactory().setValue(value);
+                            }
+                        } catch (NumberFormatException ignored) {
+                            // Keep the old value if invalid input
+                        }
+                    }
+                });
+
+                // Handle Enter key to commit the value
+                spinner.getEditor().setOnKeyPressed(event -> {
+                    if (event.getCode() == javafx.scene.input.KeyCode.ENTER) {
+                        try {
+                            String text = spinner.getEditor().getText();
+                            if (text != null && !text.trim().isEmpty()) {
+                                int value = Integer.parseInt(text.trim());
+                                if (value >= 0) {
+                                    spinner.getValueFactory().setValue(value);
+                                }
+                            }
+                        } catch (NumberFormatException ignored) {
+                            // Keep the old value if invalid input
+                        }
+                    }
                 });
 
                 spinner.valueProperty().addListener((obs, oldValue, newValue) -> {
@@ -193,11 +216,20 @@ public class ProductConsumptionComponent {
                     ProductEntry entry = getTableView().getItems().get(getIndex());
                     spinner.setDisable(entry.product.getCurrentStock() == 0);
 
-                    spinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(
-                            0,
-                            Math.max(entry.product.getCurrentStock() + 10, 1),
-                            value != null ? value.intValue() : 0
-                    ));
+                    // Create value factory only once or update existing one
+                    if (valueFactory == null) {
+                        valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(
+                                0,
+                                Math.max(entry.product.getCurrentStock() + 10, 1),
+                                value != null ? value.intValue() : 0
+                        );
+                        spinner.setValueFactory(valueFactory);
+                    } else {
+                        // Update the existing factory's min, max, and value
+                        valueFactory.setMin(0);
+                        valueFactory.setMax(Math.max(entry.product.getCurrentStock() + 10, 1));
+                        valueFactory.setValue(value != null ? value.intValue() : 0);
+                    }
 
                     setGraphic(spinner);
                 }
@@ -227,7 +259,9 @@ public class ProductConsumptionComponent {
                 if (available >= requested) {
                     validPairs.add(new Pair<>(entry.product.getProductId(), requested));
                 } else {
-                    issues.add("Only " + available + " in stock for '" + entry.product.getName() + "'");
+                    // Use available stock instead of excluding the product entirely
+                    validPairs.add(new Pair<>(entry.product.getProductId(), available));
+                    issues.add("Only " + available + " in stock for '" + entry.product.getName() + "' (requested: " + requested + ")");
                     insufficientProducts.add(entry.product.getName());
                 }
             }
@@ -240,9 +274,9 @@ public class ProductConsumptionComponent {
                 confirmAlert.setHeaderText("Some products have insufficient stock:");
                 confirmAlert.setContentText(
                     String.join("\n", issues) +
-                    "\n\nDo you want to continue checkout without these products?"
+                    "\n\nDo you want to continue checkout with available stock?"
                 );
-                ButtonType yesBtn = new ButtonType("Continue", ButtonBar.ButtonData.YES);
+                ButtonType yesBtn = new ButtonType("Continue with Available Stock", ButtonBar.ButtonData.YES);
                 ButtonType noBtn = new ButtonType("Cancel", ButtonBar.ButtonData.NO);
                 confirmAlert.getButtonTypes().setAll(yesBtn, noBtn);
 
@@ -272,7 +306,7 @@ public class ProductConsumptionComponent {
         }
 
         if (!issues.isEmpty()) {
-            if (messageBuilder.length() > 0) {
+            if (!messageBuilder.isEmpty()) {
                 messageBuilder.append("\n");
             }
             messageBuilder.append("Issues:\n");
@@ -290,8 +324,7 @@ public class ProductConsumptionComponent {
 
         refreshData();
 
-        // --- Automatic Purchase Order Logic ---
-        // (Removed: now handled by RestockOrderComponent)
+
     }
 
     public void refreshData() {
@@ -299,7 +332,7 @@ public class ProductConsumptionComponent {
         entries.addAll(
                 productService.getAllProducts().stream()
                         .map(ProductEntry::new)
-                        .collect(Collectors.toList())
+                        .toList()
         );
 
         consumeTable.setItems(entries);
